@@ -4,6 +4,10 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    jwt_private: '%env(resolve:JWT_SECRET_KEY)%'
+    jwt_public: '%env(resolve:JWT_PUBLIC_KEY)%'
+    jwt_pass_phrase: '%env(JWT_PASS_PHRASE)%'
+    jwt_algorithm: '%env(JWT_ALGORITHM)%'
 
 services:
     # default configuration for services in *this* file
@@ -22,3 +26,11 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    App\Service\JwtService:
+        arguments:
+            $privateKey: '%jwt_private%'
+            $publicKey: '%jwt_public%'
+            $passPharse: '%jwt_pass_phrase%'
+            $algorithm: '%jwt_algorithm%'
+    #App\DTO\Comments:
+        #public: true
