@@ -13,17 +13,17 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
+            entry_point: App\Security\AuthenticationEntryPoint
             lazy: true
             provider: app_user_provider
             custom_authenticator: 
                 - App\Security\AppCustomAuthenticator
                 - App\Security\JwtAuthenticator
-            entry_point: App\Security\AppCustomAuthenticator
             logout:
                 path: app_logout
                 # where to redirect after logout
-                target: app_home
-
+                # target: app_home
+                success_handler: App\Security\JwtLogoutHandler
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
 

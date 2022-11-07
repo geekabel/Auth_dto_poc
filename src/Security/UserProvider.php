@@ -35,8 +35,6 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface {
         // The $identifier argument may not actually be a username:
         // it is whatever value is being returned by the getUserIdentifier()
         // method in your User class.
-        // $idPartenaire = $this->session->get('idPartenaire');
-        // $identifiantPartenaire = $this->session->get('nomPartenaire') . ' ' . $this->session->get('prenomPartenaire');
         $apiObject = $this->session->get('users');
         // // get identifiantPartenaire from form imput
 

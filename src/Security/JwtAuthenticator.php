@@ -3,18 +3,26 @@
 // src/Security/ApiKeyAuthenticator.php
 namespace App\Security;
 
-use Firebase\JWT\JWT;
-use Firebase\JWT\ExpiredException;
-use Firebase\JWT\SignatureInvalidException;
+use App\Service\JwtService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
-use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
+use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
 
 class JwtAuthenticator extends AbstractAuthenticator {
+
+    private $jwtService;
+
+    public function __construct(JwtService $jwtService) {
+        $this->jwtService = $jwtService;
+    }
+
     /**
      * Called on every request to decide if this authenticator should be
      * used for the request. Returning `false` will cause this authenticator
@@ -24,33 +32,15 @@ class JwtAuthenticator extends AbstractAuthenticator {
         return $request->cookies->get("jwt") ? true : false;
     }
 
-    public function authenticate(Request $request) {
+    public function authenticate(Request $request): Passport {
         $cookie = $request->cookies->get("jwt");
-        // Default error message
-        $error = "Unable to validate session.";
-
-        try
-        {
-            $decodedJwt = JWT::decode($cookie, getenv("JWT_SECRET"), ['HS256']);
-
-            $payload = [
-                'user_id'               => $decodedJwt->user_id,
-                'identifiantPartenaire' => $decodedJwt->identifiantPartenaire,
-            ];
-
-            return $payload;
-        } catch (ExpiredException $e) {
-            $error = "La Session a expiré.";
-        } catch (SignatureInvalidException $e) {
-            // In this case, you may also want to send an email to yourself with the JWT
-            // If someone uses a JWT with an invalid signature, it could be a hacking attempt.
-            $error = "Tentative d'accès à une session invalide.";
-        } catch (\Exception$e) {
-            // Use the default error message
-            $e->getMessage();
+        $token = $this->jwtService->verifyToken($cookie);
+       // dd($token, $token['identifiantPartenaire']);
+        $error = $this->jwtService->getError();
+        if ($token) {
+            return new SelfValidatingPassport(new UserBadge($token['identifiantPartenaire']));
         }
-
-        throw new CustomUserMessageAuthenticationException($error);
+        throw new CustomUserMessageAccountStatusException($error);
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response {

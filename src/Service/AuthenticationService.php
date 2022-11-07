@@ -71,7 +71,9 @@ class AuthenticationService {
             // }
             //dd($content);
             return $content;
+
         } catch (\Exception$e) {
+
             return false;
         }
 

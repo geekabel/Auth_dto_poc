@@ -30,7 +30,12 @@ services:
         arguments:
             $privateKey: '%jwt_private%'
             $publicKey: '%jwt_public%'
-            $passPharse: '%jwt_pass_phrase%'
+            $passPhrase: '%jwt_pass_phrase%'
             $algorithm: '%jwt_algorithm%'
     #App\DTO\Comments:
         #public: true
+    #App\EventListener\MyCutomLogoutListener:
+    #    tags:
+    #        - name: 'kernel.event_listener'
+    #          event: 'Symfony\Component\Security\Http\Event\LogoutEvent'
+    #          dispatcher: security.event_dispatcher.main

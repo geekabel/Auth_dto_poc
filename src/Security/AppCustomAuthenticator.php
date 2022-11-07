@@ -52,11 +52,13 @@ class AppCustomAuthenticator extends AbstractLoginFormAuthenticator {
         $request->getSession()->set(Security::LAST_USERNAME, $username);
         $auth = $this->authenticationservice->authentication($username, $password);
         //dd($auth);
-        if ($auth == true) {
-            return new SelfValidatingPassport(new UserBadge($this->userProvider->loadUserByIdentifier($username)));
+        if ($auth === true) {
+            $user = $this->userProvider->loadUserByIdentifier($username);
+            //dd($user->getUserIdentifier());
+            return new SelfValidatingPassport(new UserBadge($user->getUsername()));
         }
 
-        throw new CustomUserMessageAuthenticationException('Auth problem');
+        throw new CustomUserMessageAuthenticationException('Username could not be found');
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response{
