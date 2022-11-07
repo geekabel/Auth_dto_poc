@@ -48,10 +48,16 @@ class AuthenticationService {
             ]);
 
             //dd($response->getContent(), $response->toArray());
-            $apiUser = $this->serializer->deserialize($response->getContent(), ApiSuperUser::class, 'json');
-            //$apiUser = new ApiSuperUser($response->toArray());
-            dd($apiUser, $response->toArray());
+            //dd($apiUser, $response->toArray(), $apiUser->jwt);
             $statusCode = $response->getStatusCode();
+            if (200 === $statusCode) {
+                $apiUser = $this->serializer->deserialize($response->getContent(), ApiSuperUser::class, 'json');
+                $content = true;
+                $this->session->set('users', $apiUser);
+                //dd($this->session->get('users'), $apiUser->jwt, $this->session->get('users')->user['id']);
+            } else {
+                $content = false;
+            }
             // if ($response->toArray()['code'] == 0 && $statusCode === 200) {
             //     $content = true;
             //     // get content from response and set idPartenaire
@@ -63,7 +69,8 @@ class AuthenticationService {
             // } else {
             //     $content = false;
             // }
-            // return $content;
+            //dd($content);
+            return $content;
         } catch (\Exception$e) {
             return false;
         }

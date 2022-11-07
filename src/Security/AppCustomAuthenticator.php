@@ -18,6 +18,7 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\AbstractLoginFormAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 
 class AppCustomAuthenticator extends AbstractLoginFormAuthenticator {
     use TargetPathTrait;
@@ -50,14 +51,21 @@ class AppCustomAuthenticator extends AbstractLoginFormAuthenticator {
         // }
         $request->getSession()->set(Security::LAST_USERNAME, $username);
         $auth = $this->authenticationservice->authentication($username, $password);
+        //dd($auth);
         if ($auth == true) {
             return new SelfValidatingPassport(new UserBadge($this->userProvider->loadUserByIdentifier($username)));
         }
 
-        return null;
+        throw new CustomUserMessageAuthenticationException('Auth problem');
     }
 
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response {
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response{
+        // service Jwt
+        $this->jwtService->createJwtCookie([
+            'user_id'               => $token->getUser()->getId(),
+            'identifiantPartenaire' => $token->getUser()->getUserIdentifier(),
+        ]);
+
         if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
             return new RedirectResponse($targetPath);
         }

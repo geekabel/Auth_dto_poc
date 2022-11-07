@@ -2,7 +2,9 @@
 
 namespace App\Security;
 
+use App\Service\AuthenticationService;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
@@ -10,6 +12,15 @@ use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 class UserProvider implements UserProviderInterface, PasswordUpgraderInterface {
+
+    private $auth;
+    private $session;
+
+    public function __construct(AuthenticationService $auth, SessionInterface $session) {
+        $this->auth = $auth;
+        $this->session = $session;
+    }
+
     /**
      * Symfony calls this method if you use features like switch_user
      * or remember_me.
@@ -24,7 +35,30 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface {
         // The $identifier argument may not actually be a username:
         // it is whatever value is being returned by the getUserIdentifier()
         // method in your User class.
-        throw new \Exception('TODO: fill in loadUserByIdentifier() inside ' . __FILE__);
+        // $idPartenaire = $this->session->get('idPartenaire');
+        // $identifiantPartenaire = $this->session->get('nomPartenaire') . ' ' . $this->session->get('prenomPartenaire');
+        $apiObject = $this->session->get('users');
+        // // get identifiantPartenaire from form imput
+
+        // // make a call to the webservice
+        $userData = [
+            'id'                    => $apiObject->user['id'],
+            'identifiantPartenaire' => $apiObject->user['username'],
+            'roles'                 => ['IS_AUTHENTICATED_FULLY'],
+        ];
+
+        if (!$userData) {
+            throw new UserNotFoundException(
+                sprintf('Le nom d\'utilisateur "%s" n\'existe pas.', $identifier)
+            );
+        }
+
+        $username = (new User())
+            ->setId($userData['id'])
+            ->setUsername($userData['identifiantPartenaire'])
+            ->setRoles($userData['roles']);
+
+        return $username;
     }
 
     /**
@@ -52,7 +86,7 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface {
 
         // Return a User object after making sure its data is "fresh".
         // Or throw a UsernameNotFoundException if the user no longer exists.
-        throw new \Exception('TODO: fill in refreshUser() inside ' . __FILE__);
+        return $this->loadUserByIdentifier($user->getUserIdentifier());
     }
 
     /**

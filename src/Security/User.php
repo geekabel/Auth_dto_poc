@@ -9,6 +9,15 @@ class User implements UserInterface {
     private $username;
 
     /**
+     * @var int
+     *
+     * @ORM\Column(name="id", type="integer")
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="AUTO")
+     */
+    private $id;
+
+    /**
      * @var string The hashed password
      * @ORM\Column(type="string")
      */
@@ -84,6 +93,16 @@ class User implements UserInterface {
 
     public function setPassword(string $password): self {
         $this->password = $password;
+
+        return $this;
+    }
+
+    public function getId(): ?int {
+        return $this->id;
+    }
+
+    public function setId(int $id): self {
+        $this->id = $id;
 
         return $this;
     }
